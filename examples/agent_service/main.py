@@ -16,7 +16,7 @@ from agentscope.app.channel import (
 from agentscope.app.hub import ClawSkillHub, GitHubMCPHub
 from agentscope.app.message_bus import InMemoryMessageBus
 from agentscope.app.rag.knowledge_base_manager import CollectionPerKbManager
-from agentscope.app.storage import RedisStorage
+from agentscope.app.storage import AsyncSQLAlchemyStorage
 from agentscope.app.workspace_manager import LocalWorkspaceManager
 from agentscope.mcp import MCPClient, StdioMCPConfig, HttpMCPConfig
 from agentscope.middleware import AgenticMemoryMiddleware, MiddlewareBase
@@ -47,9 +47,10 @@ if os.getenv("AMAP_API_KEY"):
         ),
     )
 
-storage = RedisStorage(
-    host="localhost",
-    port=6379,
+# 本地 MySQL 8.0.37。密码从环境变量 MYSQL_PASSWORD 读取，避免硬编码提交进 git。
+storage = AsyncSQLAlchemyStorage(
+    f"mysql+aiomysql://root:{os.environ.get('MYSQL_PASSWORD', '')}"
+    "@127.0.0.1:3306/agentscope",
 )
 
 vector_store = QdrantStore(location=":memory:")
